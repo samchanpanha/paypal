@@ -1,0 +1,235 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <style>
+        .hosted-field {
+            height: 50px;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            display: inline-block;
+            box-shadow: none;
+            font-family: 'monospace';
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #dddddd;
+            line-height: 20px;
+            background: #fcfcfc;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, white 50%, #fcfcfc 50%);
+            background-size: 200% 100%;
+            background-position: right bottom;
+            transition: all 300ms ease-in-out;
+            font-size: 16px;
+            color: #3A3A3A;
+        }
+        
+        .hosted-fields--label {
+            font-family: courier, monospace;
+            text-transform: uppercase;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 6px;
+        }
+        
+        .button-container {
+            display: block;
+            text-align: center;
+        }
+        
+        .button {
+            cursor: pointer;
+            font-weight: 500;
+            line-height: inherit;
+            position: relative;
+            text-decoration: none;
+            text-align: center;
+            border-style: solid;
+            border-width: 1px;
+            border-radius: 3px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            display: inline-block;
+        }
+        
+        .button--small {
+            padding: 10px 20px;
+            font-size: 0.875rem;
+        }
+        
+        .button--green {
+            outline: none;
+            background-color: #64d18a;
+            border-color: #64d18a;
+            color: white;
+            transition: all 200ms ease;
+        }
+        
+        .button--green:hover {
+            background-color: #8bdda8;
+            color: white;
+        }
+        
+        .braintree-hosted-fields-focused {
+            border: 1px solid #64d18a;
+            border-radius: 1px;
+            background-position: left bottom;
+        }
+        
+        .braintree-hosted-fields-invalid {
+            border: 1px solid #ed574a;
+        }
+        
+        #cardForm {
+            max-width: 50.75em;
+            margin: 0 auto;
+            padding: 1.875em;
+        }
+        
+        .payment-container {
+            width: 50%
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Shopping Cart</h1>
+
+    <img src="https://cdn.vox-cdn.com/thumbor/bPWK2Y6Ss9fw7G42dDI9Xvpmxhg=/0x0:5616x3744/920x613/filters:focal(2359x1423:3257x2321):format(webp)/cdn.vox-cdn.com/uploads/chorus_image/image/61819455/tp.candycornbowl.0.0.0.0.jpg" height="400">
+    <br>
+    <h3>Candy Corn - $1.00/each</h3>
+    <h4>No other candy can match the creamy taste of candy corn, a sweet Halloween favorite for more than a century.</h4>
+    <hr>
+    <h3>Cart Total - $1.00
+        <h3>
+
+            <!-- Import PayPal JavaScript SDK -->
+            <script src="https://www.paypal.com/sdk/js?components=hosted-fields,buttons&client-id={{CLIENT_ID}}" data-client-token="{{CLIENT_TOKEN}}"></script>
+
+            <div class="payment-container">
+
+                <!-- Buttons container -->
+                <div id="paypal-button-container"></div>
+
+                <!-- Advanced credit and debit card payments form -->
+                <div class="card_container">
+                    <form id="card-form">
+                        <br>
+                        <div align="center"> or </div>
+
+                        <label class="hosted-fields--label" for="card-number">Card Number</label>
+                        <div id="card-number" class="hosted-field"></div>
+
+                        <label class="hosted-fields--label" for="expiration-date">Expiration Date</label>
+                        <div id="expiration-date" class="hosted-field"></div>
+
+                        <label class="hosted-fields--label" for="cvv">CVV</label>
+                        <div id="cvv" class="hosted-field"></div>
+
+                        <br><br>
+                        <div class="button-container">
+                            <input type="submit" class="button button--small button--green" value="Pay" id="submit" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Implementation -->
+            <script>
+                // Displays PayPal buttons
+                paypal.Buttons({
+                    style: {
+                        layout: 'horizontal'
+                    },
+                    createOrder: function(data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                amount: {
+                                    value: "1.00"
+                                }
+                            }]
+                        });
+                    },
+                    onApprove: function(data, actions) {
+                        return actions.order.capture().then(function(details) {
+                            window.location.href = '/success.html';
+                        });
+                    }
+                }).render("#paypal-button-container");
+
+                // Eligibility check for advanced credit and debit card payments
+                if (paypal.HostedFields.isEligible()) {
+                    let orderId;
+
+                    paypal.HostedFields.render({
+                        styles: {
+                            // Styling element state
+                            '.valid': {
+                                'color': 'green'
+                            },
+                            '.invalid': {
+                                'color': 'red'
+                            }
+                        },
+                        fields: {
+                            number: {
+                                selector: "#card-number",
+                                placeholder: "4111 1111 1111 1111"
+                            },
+                            cvv: {
+                                selector: "#cvv",
+                                placeholder: "123"
+                            },
+                            expirationDate: {
+                                selector: "#expiration-date",
+                                placeholder: "MM/YY"
+                            }
+                        },
+                        createOrder: async function() {
+                            const res = await fetch("/create-order", {
+                                method: 'POST'
+                            });
+                            const {
+                                id
+                            } = await res.json();
+                            orderId = id;
+                            return id;
+                        }
+                    }).then(function(hostedFields) {
+                        document.querySelector("#card-form").addEventListener('submit', (event) => {
+                            event.preventDefault();
+
+                            hostedFields.submit({
+                                contingencies: ['3D_SECURE'],
+                            }).then(async() => {
+                                const res = await fetch(`/capture-order/${orderId}`, {
+                                    method: 'POST'
+                                });
+                                const {
+                                    status
+                                } = await res.json();
+
+                                if (status === 'COMPLETED') {
+                                    window.location.href = '/success.html';
+                                } else {
+                                    alert('Funds could not be captured. Try again!');
+                                }
+                            }).catch((err) => {
+                                console.error(JSON.stringify(err));
+                            });
+                        });
+                    });
+                } else {
+                    // hides the advanced credit and debit card payments fields, if merchant isn't eligible
+                    document.querySelector("#card-form").style = 'display: none';
+                }
+            </script>
+
+</body>
+
+</html>
