@@ -65,13 +65,13 @@ async function captureOrder(orderId) {
     return data;
 }
 
-router.get("/", async(req, res) => {
-    res.json({
-        "hello": "hi!"
-    });
-});
+// router.get("/", async(req, res) => {
+//     res.json({
+//         "hello": "hi!"
+//     });
+// });
 
-router.get("/app", async(req, res) => {
+router.get("/", async(req, res) => {
     const { access_token } = await getAccessToken();
     const { client_token } = await getClientToken(access_token);
 
