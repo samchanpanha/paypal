@@ -191,7 +191,7 @@
                             }
                         },
                         createOrder: async function() {
-                            const res = await fetch("/create-order", {
+                            const res = await fetch("/.netlify/functions/api/create-order", {
                                 method: 'POST'
                             });
                             const {
@@ -207,7 +207,7 @@
                             hostedFields.submit({
                                 contingencies: ['3D_SECURE'],
                             }).then(async() => {
-                                const res = await fetch(`/capture-order/${orderId}`, {
+                                const res = await fetch(`/.netlify/functions/api/capture-order/${orderId}`, {
                                     method: 'POST'
                                 });
                                 const {

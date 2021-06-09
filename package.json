@@ -1,10 +1,11 @@
 {
-    "name": "js-sdk-advanced-integration",
+    "name": "js-sdk-advanced-paypal",
     "version": "1.0.0",
     "description": "A demo of PayPal's JS SDK Advanced Integration",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js"
+        "start": "./node_modules/.bin/netlify-lambda serve src",
+        "build": "./node_modules/.bin/netlify-lambda build src"
     },
     "engines": {
         "node": "14.x"
@@ -13,7 +14,9 @@
     "license": "ISC",
     "dependencies": {
         "axios": "^0.19.2",
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "netlify-lambda": "^2.0.8",
+        "serverless-http": "^2.7.0"
     },
     "repository": {
         "type": "git",

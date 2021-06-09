@@ -3,8 +3,11 @@ const app = express();
 const axios = require("axios");
 const fs = require("fs");
 const util = require("util");
+const serverless = require("serverless-http");
 
-const PORT = 3000;
+// const PORT = 3000;
+
+const router = express.Router();
 
 // @TODO Login to developer.paypal.com, create (or select an existing)
 // developer application, and copy your client ID and secret here
@@ -62,11 +65,17 @@ async function captureOrder(orderId) {
     return data;
 }
 
-app.get("/", async(req, res) => {
+router.get("/", async(req, res) => {
+    res.json({
+        "hello": "hi!"
+    });
+});
+
+router.get("/app", async(req, res) => {
     const { access_token } = await getAccessToken();
     const { client_token } = await getClientToken(access_token);
 
-    let html = await readFile(`${process.cwd()}/public/index.html`, "utf8");
+    let html = await readFile(`${process.cwd()}/dist/index.html`, "utf8");
 
     html = html.replace("{{CLIENT_TOKEN}}", client_token);
     html = html.replace("{{CLIENT_ID}}", CLIENT_ID);
@@ -76,7 +85,7 @@ app.get("/", async(req, res) => {
     res.end();
 });
 
-app.post("/create-order", async(req, res) => {
+router.post("/create-order", async(req, res) => {
     try {
         const { access_token } = await getAccessToken();
 
@@ -107,7 +116,7 @@ app.post("/create-order", async(req, res) => {
     }
 });
 
-app.post("/capture-order/:orderId", async(req, res) => {
+router.post("/capture-order/:orderId", async(req, res) => {
     try {
         const { access_token } = await getAccessToken();
         const orderId = req.params.orderId;
@@ -131,8 +140,11 @@ app.post("/capture-order/:orderId", async(req, res) => {
     }
 });
 
-app.use(express.static("public"));
+// app.use(express.static("dist"));
+app.use('/.netlify/functions/api', router);
 
-app.listen(PORT, () => {
-    console.log(`Listening at http://localhost:${PORT}`);
-});
+module.exports.handler = serverless(app);
+
+// app.listen(PORT, () => {
+//     console.log(`Listening at /.nettlify/functions:${PORT}`);
+// });
